@@ -1,46 +1,36 @@
 # tapo-cli
 
-Control Matter-era Tapo devices (plugs, switches, bulbs) through TP-Link's
-own cloud. No LAN, no VPN, no phone.
+[![ci](https://github.com/c0ffeeOverdose/tapo-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/c0ffeeOverdose/tapo-cli/actions/workflows/ci.yml)
 
-```
-$ tapo-cli list
-DEVICE             MODEL     STATE
-Living Room Plug   P110M     ● on
-```
+Control TP-Link Tapo devices from a terminal through the TP-Link cloud, the
+same API the Tapo app uses when you are away from home.
 
-## Tested devices
+Matter-era devices such as the P110M never join the legacy cloud relay that
+tplink-cloud-api and tplc speak; that relay answers `-20571 "Device is
+offline"` while the app still controls the device. This talks to the app
+server cloud instead. The wire format, and the endpoints that do not work,
+are written down in [docs/PROTOCOL.md](docs/PROTOCOL.md).
 
-| Device | Verified |
-|---|---|
-| P110M(US), firmware 1.4.3, Tapo app 3.20.753 | `list`, `status`, `on`, `off`, `toggle`, `info` |
-
-That is the only device this has been tried on. The code makes no
-model-specific assumptions — it writes the `on` property of the device's
-shadow and reads it back — so other devices on the same cloud (P100/P110/P115
-plugs, S505 switches, L530 bulbs, …) should work for on/off, but nobody has
-confirmed that. Devices without an `on` property (routers, hubs, cameras)
-appear in `list` and cannot be switched.
+**Unofficial.** Not affiliated with or endorsed by TP-Link. It speaks an
+undocumented API that TP-Link can change at any time. Use it on your own
+account, at your own risk.
 
 ## Install
 
-### uv (recommended)
+uv (recommended):
 
 ```console
 uv tool install git+https://github.com/c0ffeeOverdose/tapo-cli
 uvx --from git+https://github.com/c0ffeeOverdose/tapo-cli tapo-cli list
 ```
 
-From a checkout, `uv run tapo-cli …` works without installing anything;
-`uv.lock` pins the dependency tree, whose only direct entry is `requests`.
-
-### pip
+pip:
 
 ```console
-pip install .        # or: python -m tapo_cli …
+pip install .
 ```
 
-### Nix
+Nix:
 
 ```nix
 inputs.tapo-cli.url = "github:c0ffeeOverdose/tapo-cli";
@@ -52,7 +42,7 @@ home.packages = [ inputs.tapo-cli.packages.${pkgs.system}.default ];
 nix run github:c0ffeeOverdose/tapo-cli -- list
 ```
 
-### Docker
+Docker:
 
 ```console
 docker build -t tapo-cli .
@@ -61,67 +51,77 @@ docker run --rm --user "$(id -u):$(id -g)" \
   tapo-cli list
 ```
 
-With rootless podman use `--userns=keep-id` instead of `--user`, otherwise the
-container cannot read the mode-600 session file.
+With rootless podman pass `--userns=keep-id` instead of `--user`, otherwise
+the container cannot read the mode-600 session file.
 
-## Use
+## Usage
 
 ```console
-tapo-cli auth                 # once: prompts, saves a token (mode 600)
-tapo-cli list                 # devices, cloud status, live state
-tapo-cli status <name>        # on/off of one device
-tapo-cli on|off|toggle <name> # switch it
-tapo-cli info <name>          # ip, mac, firmware, ssid, signal
+tapo-cli auth                  # log in once; the token is saved to
+                               # ~/.config/tapo-cli/session.json (mode 600)
+tapo-cli list
+tapo-cli status "Living Room Plug"
+tapo-cli off "Living Room Plug"
 ```
 
-`auth status` shows the saved session, `auth logout` drops it, `auth
---save-credentials` also writes the password file, and `auth --show-token`
-(or `--json`) prints the full token for scripts.
-
-Flags — `--json`, `--exact`, `--wait SECONDS`, `--color auto|always|never`,
-`-v` — work before or after the subcommand. Output is plain when piped and
-honours `NO_COLOR`.
-
-Without a session, commands fall back to `--username`/`--password`,
+Without a session, commands take `--username`/`--password`, then
 `TPLINK_USERNAME`/`TPLINK_PASSWORD`, then
-`~/.config/tapo-cli/credentials.env` (mode 600), logging in and saving the
-resulting session. Two-factor accounts ask for the emailed code once.
+`~/.config/tapo-cli/credentials.env` (mode 600), and save the resulting
+session. A password given on the command line ends up in the shell history,
+so `auth` or the environment is better for regular use. Accounts with
+two-factor authentication are asked for the mailed code once.
 
-## Why the usual tools don't work
+### Commands
 
-| Approach | Works for | Fails for |
-|---|---|---|
-| [python-kasa](https://github.com/python-kasa/python-kasa) (local) | devices on your LAN | anything you want to reach from elsewhere |
-| [tplink-cloud-api](https://github.com/piekstra/tplink-cloud-api) / [tplc](https://github.com/piekstra/tplink-cloud-cli) (legacy cloud) | Kasa and older Tapo devices | Matter-era Tapo devices, which answer `-20571 "Device is offline"` while the Tapo app controls them fine |
+| Command | |
+|---|---|
+| `auth [status\|logout]` | log in, show or forget the saved token |
+| `list` | devices, cloud status, live state |
+| `status <name>` | on/off of one device |
+| `info <name>` | ip, mac, firmware, ssid, signal |
+| `on\|off\|toggle <name>` | switch it |
 
-Those devices never join the legacy relay; they live on the app-server cloud
-the app uses. That is the API this speaks — endpoints, auth and the dead ends
-we hit are written down in [docs/PROTOCOL.md](docs/PROTOCOL.md).
+### Flags
 
-## Caveats
+| Flag | |
+|---|---|
+| `--json` | JSON output (the full token for `auth`) |
+| `--exact` | match the device name exactly instead of a substring |
+| `--wait SECONDS` | how long to wait for the device to confirm (default 20) |
+| `--color auto\|always\|never` | colour output; `auto` is off when piped and honours `NO_COLOR` |
+| `-u`, `-p` | credentials for one run, no session written |
+| `-v` | print the raw cloud exchange |
+| `--version` | version |
 
-- Unofficial and reverse engineered: TP-Link can change the API at any time
-  (verified against Tapo app 3.20.753, October 2026). Not affiliated with or
-  endorsed by TP-Link.
-- Only a P110M has been tested — see [Tested devices](#tested-devices).
-- The device has to be reachable through TP-Link's cloud, exactly like the
-  phone app when you are away.
-- Switching and reading state is all there is; brightness, colour and energy
-  monitoring are not implemented (the thing model has them — see
-  `tools/probe_thing_api.py`).
-- Set `TAPO_CLI_CA_BUNDLE` to your own bundle to debug through a proxy.
+`auth` also takes `--save-credentials` (write the password file too) and
+`--show-token` (print the full token).
+
+Flags work before or after the subcommand.
+
+## Devices
+
+| Device | Verified |
+|---|---|
+| P110M(US), firmware 1.4.3, Tapo app 3.20.753 | `list`, `status`, `on`, `off`, `toggle`, `info` |
+
+That is the only device this has been tried on. The code writes the `on`
+property of the device shadow and reads it back, so other devices on the same
+cloud (P100/P110/P115 plugs, S505 switches, L530 bulbs) should work for
+on/off, but that is unverified. Devices without an `on` property (routers,
+hubs) appear in `list` and cannot be switched. Brightness, colour and energy
+are not implemented; the thing model has them, see
+`tools/probe_thing_api.py`.
 
 ## Development
 
 ```console
 uv run pytest                     # 48 tests
 uv run python -m tapo_cli list    # run from the checkout
-nix develop -c pytest             # same suite, if you live in Nix
 tools/probe_thing_api.py          # read-only dump of the cloud's view
 ```
 
 ## License
 
-MIT. Nothing from the Tapo app is copied; the certificates in
+MIT. Nothing from the Tapo app is copied. The certificates in
 `tapo_cli/certs/tplink-ca-chain.pem` are TP-Link's public CA anchors, which
-the cloud does not serve itself and TLS verification needs.
+the cloud does not serve and TLS verification needs.

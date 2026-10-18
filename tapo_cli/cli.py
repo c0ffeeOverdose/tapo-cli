@@ -624,10 +624,7 @@ def _common_flags():
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="tapo-cli",
-        description=(
-            "Control Tapo (Matter-era) devices through TP-Link's new "
-            "cloud API - works from anywhere, no LAN needed"
-        ),
+        description="Control TP-Link Tapo devices through the TP-Link cloud.",
     )
     parser.add_argument("-u", "--username", help="TP-Link account email")
     parser.add_argument("-p", "--password", help="TP-Link account password")
