@@ -377,12 +377,14 @@ def test_auth_actions_parse():
         assert args.action == action
 
 
-def test_auth_flags_parse():
-    args = cli.build_parser().parse_args(
-        ["auth", "login", "--save-credentials", "--show-token"]
-    )
-    assert args.save_credentials is True
+def test_auth_show_token_parses():
+    args = cli.build_parser().parse_args(["auth", "login", "--show-token"])
     assert args.show_token is True
+
+
+def test_save_credentials_is_gone():
+    with pytest.raises(SystemExit):
+        cli.build_parser().parse_args(["auth", "login", "--save-credentials"])
 
 
 def test_python_m_entry_point_is_importable():

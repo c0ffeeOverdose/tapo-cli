@@ -3,16 +3,18 @@
     python3 tools/probe_thing_api.py [device-name]
 
 Dumps the device list, both shadows, details and the thing model; changes
-nothing. Auth like the CLI (see README).
+nothing on the cloud. Auth like the CLI: the saved session, or
+TPLINK_USERNAME/TPLINK_PASSWORD.
 """
 
 import json
 import pathlib
 import sys
+import types
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from tapo_cli import auth, cli  # noqa: E402
+from tapo_cli import cli  # noqa: E402
 
 
 def show(title, payload):
@@ -21,20 +23,8 @@ def show(title, payload):
 
 
 def main():
-    stored = cli.load_credentials_file()
-    if not stored:
-        stored = cli.load_credentials_file(cli.LEGACY_CREDENTIALS_FILE)
-    username = stored.get("TPLINK_USERNAME")
-    password = stored.get("TPLINK_PASSWORD")
-    if not username or not password:
-        raise SystemExit(
-            f"no credentials in {cli.CREDENTIALS_FILE} "
-            f"(or {cli.LEGACY_CREDENTIALS_FILE})"
-        )
-
-    cloud = cli.Cloud(
-        auth.CloudAuth(username, password), email=username
-    )
+    args = types.SimpleNamespace(username=None, password=None, verbose=False)
+    cloud = cli.open_cloud(args)
     print(f"app-server: {cloud.base}")
 
     things = cloud.things()

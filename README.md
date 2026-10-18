@@ -63,12 +63,11 @@ tapo-cli status "Living Room Plug"
 tapo-cli off "Living Room Plug"
 ```
 
-`auth` stores the token under `~/.config/tapo-cli`. Without a session,
-commands take `--username`/`--password`, then
-`TPLINK_USERNAME`/`TPLINK_PASSWORD`, then
-`~/.config/tapo-cli/credentials.env`, and save the resulting session. A
-password given on the command line ends up in the shell history, so `auth`
-or the environment is better for regular use. Accounts with two-factor
+`auth` stores the token under `~/.config/tapo-cli`. For scripts without a
+terminal, set `TPLINK_USERNAME`/`TPLINK_PASSWORD` instead: the first command
+logs in and saves a session, so they are only needed once. A password given
+on the command line ends up in the shell history, so `auth` or the
+environment is better for regular use. Accounts with two-factor
 authentication are asked for the mailed code once.
 
 ### Commands
@@ -93,8 +92,7 @@ authentication are asked for the mailed code once.
 | `-v` | print the raw cloud exchange |
 | `--version` | version |
 
-`auth` also takes `--save-credentials` (write the password file too) and
-`--show-token` (print the full token).
+`auth` also takes `--show-token` to print the full token.
 
 Flags work before or after the subcommand.
 

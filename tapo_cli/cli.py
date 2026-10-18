@@ -4,8 +4,8 @@ Matter-era devices such as the P110M are not on the legacy relay that
 tplink-cloud-api speaks; they live on the app-server cloud the Tapo app
 uses, which this talks to. Endpoints: docs/PROTOCOL.md.
 
-Auth, in order: --username/--password, a session from `tapo-cli auth`,
-TPLINK_USERNAME/TPLINK_PASSWORD, then ~/.config/tapo-cli/credentials.env.
+Auth, in order: --username/--password, a session from `tapo-cli auth`, then
+TPLINK_USERNAME/TPLINK_PASSWORD.
 """
 
 import argparse
@@ -13,7 +13,6 @@ import base64
 import getpass
 import json
 import os
-import pathlib
 import re
 import sys
 import time
@@ -29,13 +28,6 @@ APP_NAME = auth.APP_NAME
 APP_VERSION = auth.APP_SERVER_VERSION
 APP_SERVICE = "nbu.iot-app-server.app-v2"
 
-CONFIG_ROOT = pathlib.Path(
-    os.environ.get("XDG_CONFIG_HOME", pathlib.Path.home() / ".config")
-)
-CONFIG_DIR = CONFIG_ROOT / "tapo-cli"
-CREDENTIALS_FILE = CONFIG_DIR / "credentials.env"
-# fallback: the pre-1.0 location next to the legacy CLI
-LEGACY_CREDENTIALS_FILE = CONFIG_ROOT / "kasa-cloud" / "credentials.env"
 
 
 def die(message, code=1):
@@ -43,42 +35,13 @@ def die(message, code=1):
     raise SystemExit(code)
 
 
-def load_credentials_file(path=None):
-    values = {}
-    path = path or CREDENTIALS_FILE
-    try:
-        lines = path.read_text(encoding="utf-8").splitlines()
-    except OSError:
-        return values
-    for line in lines:
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, _, value = line.partition("=")
-        values[key.strip()] = value.strip().strip("'\"")
-    return values
-
-
 def resolve_credentials(args):
-    stored = load_credentials_file()
-    if not stored and LEGACY_CREDENTIALS_FILE.exists():
-        stored = load_credentials_file(LEGACY_CREDENTIALS_FILE)
-    username = (
-        args.username
-        or os.environ.get("TPLINK_USERNAME")
-        or stored.get("TPLINK_USERNAME")
-    )
-    password = (
-        args.password
-        or os.environ.get("TPLINK_PASSWORD")
-        or stored.get("TPLINK_PASSWORD")
-    )
+    username = args.username or os.environ.get("TPLINK_USERNAME")
+    password = args.password or os.environ.get("TPLINK_PASSWORD")
     if not username or not password:
         die(
-            "no session and no credentials. Run `tapo-cli auth` to log "
-            "in once, or export TPLINK_USERNAME/TPLINK_PASSWORD, or "
-            f"create {CREDENTIALS_FILE} (chmod 600) with lines "
-            "TPLINK_USERNAME=... and TPLINK_PASSWORD=..."
+            "no session and no credentials. Run `tapo-cli auth` to log in "
+            "once, or set TPLINK_USERNAME and TPLINK_PASSWORD."
         )
     return username, password
 
@@ -548,14 +511,6 @@ def cmd_auth(args):
         auth_obj.refresh_token,
         auth_obj.term_id,
     )
-    if args.save_credentials:
-        path = CREDENTIALS_FILE
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            f"TPLINK_USERNAME={username}\nTPLINK_PASSWORD={password}\n",
-            encoding="utf-8",
-        )
-        os.chmod(path, 0o600)
     token = auth_obj.token if (args.show_token or args.json) \
         else session.preview(auth_obj.token)
     payload = {
@@ -666,11 +621,6 @@ def build_parser():
         default="login",
         choices=("login", "status", "logout"),
         help="login (default), status or logout",
-    )
-    p_auth.add_argument(
-        "--save-credentials",
-        action="store_true",
-        help="also write ~/.config/tapo-cli/credentials.env (mode 600)",
     )
     p_auth.add_argument(
         "--show-token",

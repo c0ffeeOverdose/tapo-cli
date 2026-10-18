@@ -1,8 +1,7 @@
 """The token minted by ``tapo-cli auth``.
 
 Kept at ``~/.config/tapo-cli/session.json`` (mode 600): token, refresh
-token and terminal id. No password unless ``auth --save-credentials`` wrote
-one separately.
+token and terminal id. Never a password.
 """
 
 import json
