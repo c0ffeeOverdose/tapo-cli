@@ -27,17 +27,19 @@ SIGNING_TIMESTAMP = "9999999999"  # fixed in the app and its SDK
 
 REGIONAL_HOST = "https://n-wap.i.tplinkcloud.com"
 
-PATH_ACCOUNT_STATUS = "/api/v2/account/getAccountStatusAndUrl"
-PATH_LOGIN = "/api/v2/account/login"
-PATH_MFA_LOGIN = "/api/v2/account/checkMFACodeAndLogin"
-PATH_APP_SERVICE_URL = "/api/v2/common/getAppServiceUrl"
-PATH_REFRESH_TOKEN = "/api/v2/account/refreshToken"
+# Cloud endpoints, all signed (see docs/PROTOCOL.md).
+ACCOUNT_STATUS  = "/api/v2/account/getAccountStatusAndUrl"  # regional host
+LOGIN           = "/api/v2/account/login"                   # token or MFA
+MFA_LOGIN       = "/api/v2/account/checkMFACodeAndLogin"    # finish MFA
+REFRESH_TOKEN   = "/api/v2/account/refreshToken"            # extend session
+APP_SERVICE_URL = "/api/v2/common/getAppServiceUrl"         # app-server
 
-ERR_MFA_REQUIRED = -20677
-ERR_TOKEN_EXPIRED = -20651
-ERR_REFRESH_TOKEN_EXPIRED = -20655
-ERR_WRONG_CREDENTIALS = -20601
-ERR_ACCOUNT_LOCKED = -20675
+# Cloud error codes.
+ERR_MFA_REQUIRED          = -20677  # wants a mailed code
+ERR_TOKEN_EXPIRED         = -20651  # retry with the refresh token
+ERR_REFRESH_TOKEN_EXPIRED = -20655  # re-login needed
+ERR_WRONG_CREDENTIALS     = -20601
+ERR_ACCOUNT_LOCKED        = -20675
 
 USER_AGENT = "Dalvik/2.1.0 (Linux; U; Android 14; Pixel Build/UP1A)"
 
@@ -161,7 +163,7 @@ class CloudAuth:
     def _login(self, mfa_callback):
         status = self._post(
             self.host,
-            PATH_ACCOUNT_STATUS,
+            ACCOUNT_STATUS,
             {"appType": APP_TYPE, "cloudUserName": self.username},
         )
         if status.get("error_code") == 0:
@@ -170,7 +172,7 @@ class CloudAuth:
                 self.host = regional
         reply = self._post(
             self.host,
-            PATH_LOGIN,
+            LOGIN,
             {
                 "appType": APP_TYPE,
                 "appVersion": APP_VERSION,
@@ -215,7 +217,7 @@ class CloudAuth:
         code = mfa_callback(mfa_type, self.username)
         reply = self._post(
             self.host,
-            PATH_MFA_LOGIN,
+            MFA_LOGIN,
             {
                 "appType": APP_TYPE,
                 "cloudPassword": self.password,
@@ -245,7 +247,7 @@ class CloudAuth:
             return False
         reply = self._post(
             self.host,
-            PATH_REFRESH_TOKEN,
+            REFRESH_TOKEN,
             {
                 "appType": APP_TYPE,
                 "refreshToken": self.refresh_token,
@@ -263,7 +265,7 @@ class CloudAuth:
         """Resolve an NBU service host (the app-server) for this account."""
         reply = self._post(
             self.host,
-            PATH_APP_SERVICE_URL,
+            APP_SERVICE_URL,
             {"serviceIds": [service_id]},
             token=self.token,
         )

@@ -71,7 +71,7 @@ def test_content_md5_matches_the_documented_scheme():
 
 def test_signing_headers_sign_the_right_string():
     body = json.dumps({"hello": "world"})
-    path = auth.PATH_LOGIN
+    path = auth.LOGIN
     headers = auth.signing_headers(body, path)
     assert set(headers) == {"Content-MD5", "X-Authorization"}
 
@@ -110,7 +110,7 @@ def test_login_follows_the_regional_url_and_keeps_the_token(monkeypatch):
     assert session.host == "https://regional"
     assert sent[0][0] == auth.REGIONAL_HOST
     assert sent[1][0] == "https://regional"
-    assert sent[0][1] == auth.PATH_ACCOUNT_STATUS
+    assert sent[0][1] == auth.ACCOUNT_STATUS
     assert sent[0][2] == {
         "appType": auth.APP_TYPE, "cloudUserName": "user@example.com",
     }
@@ -175,7 +175,7 @@ def test_mfa_callback_is_used_and_its_code_verified(monkeypatch):
     )
     assert session.token == "mfa-token"
     assert asked == [("verifyCodeLogin", "user@example.com")]
-    assert sent[2][1] == auth.PATH_MFA_LOGIN
+    assert sent[2][1] == auth.MFA_LOGIN
     assert sent[2][2]["code"] == "123456"
 
 
@@ -352,7 +352,7 @@ def test_refresh_updates_the_token(monkeypatch):
     assert session.refresh() is True
     assert session.token == "new"
     assert session.refresh_token == "newref"
-    assert seen[0][0] == auth.PATH_REFRESH_TOKEN
+    assert seen[0][0] == auth.REFRESH_TOKEN
     assert seen[0][1]["refreshToken"] == "ref"
 
 
