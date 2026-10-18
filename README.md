@@ -57,14 +57,14 @@ the container runs as another uid and cannot read your session file.
 ## Usage
 
 ```console
-tapo-cli auth                  # log in once; stores a token under
-                               # ~/.config/tapo-cli
+tapo-cli auth                  # log in once, saves a token
 tapo-cli list
 tapo-cli status "Living Room Plug"
 tapo-cli off "Living Room Plug"
 ```
 
-Without a session, commands take `--username`/`--password`, then
+`auth` stores the token under `~/.config/tapo-cli`. Without a session,
+commands take `--username`/`--password`, then
 `TPLINK_USERNAME`/`TPLINK_PASSWORD`, then
 `~/.config/tapo-cli/credentials.env`, and save the resulting session. A
 password given on the command line ends up in the shell history, so `auth`
@@ -73,7 +73,7 @@ authentication are asked for the mailed code once.
 
 ### Commands
 
-| Command | |
+| Command | Description |
 |---|---|
 | `auth [status\|logout]` | log in, show or forget the saved token |
 | `list` | devices, cloud status, live state |
@@ -83,7 +83,7 @@ authentication are asked for the mailed code once.
 
 ### Flags
 
-| Flag | |
+| Flag | Description |
 |---|---|
 | `--json` | JSON output (the full token for `auth`) |
 | `--exact` | match the device name exactly instead of a substring |
