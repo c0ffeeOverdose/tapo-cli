@@ -19,14 +19,14 @@ account, at your own risk.
 
 uv (recommended):
 
-```console
+```bash
 uv tool install git+https://github.com/c0ffeeOverdose/tapo-cli
 uvx --from git+https://github.com/c0ffeeOverdose/tapo-cli tapo-cli list
 ```
 
 pip:
 
-```console
+```bash
 pip install git+https://github.com/c0ffeeOverdose/tapo-cli
 ```
 
@@ -38,13 +38,13 @@ inputs.tapo-cli.url = "github:c0ffeeOverdose/tapo-cli";
 home.packages = [ inputs.tapo-cli.packages.${pkgs.system}.default ];
 ```
 
-```console
+```bash
 nix run github:c0ffeeOverdose/tapo-cli -- list
 ```
 
 Docker:
 
-```console
+```bash
 docker build -t tapo-cli .
 docker run --rm --user "$(id -u):$(id -g)" \
   -v ~/.config/tapo-cli:/home/tapo/.config/tapo-cli \
@@ -56,7 +56,7 @@ the container runs as another uid and cannot read your session file.
 
 ## Usage
 
-```console
+```bash
 tapo-cli auth                  # log in once, saves a token
 tapo-cli list
 tapo-cli status "Living Room Plug"
@@ -113,7 +113,7 @@ implemented.
 
 ## Development
 
-```console
+```bash
 uv run pytest                     # 48 tests
 uv run python -m tapo_cli list    # run from the checkout
 tools/probe_thing_api.py          # read-only dump of the cloud's view
