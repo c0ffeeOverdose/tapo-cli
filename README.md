@@ -27,7 +27,7 @@ uvx --from git+https://github.com/c0ffeeOverdose/tapo-cli tapo-cli list
 pip:
 
 ```console
-pip install .
+pip install git+https://github.com/c0ffeeOverdose/tapo-cli
 ```
 
 Nix:
@@ -104,13 +104,12 @@ Flags work before or after the subcommand.
 |---|---|
 | P110M(US), firmware 1.4.3, Tapo app 3.20.753 | `list`, `status`, `on`, `off`, `toggle`, `info` |
 
-That is the only device this has been tried on. The code writes the `on`
-property of the device shadow and reads it back, so other devices on the same
-cloud (P100/P110/P115 plugs, S505 switches, L530 bulbs) should work for
-on/off, but that is unverified. Devices without an `on` property (routers,
-hubs) appear in `list` and cannot be switched. Brightness, colour and energy
-are not implemented; the thing model has them, see
-`tools/probe_thing_api.py`.
+Only that device has been tested. The code writes the `on` property of the
+device shadow and reads it back, so other devices on the same cloud
+(P100/P110/P115 plugs, S505 switches, L530 bulbs) should work for on/off, but
+that is unverified. Devices without an `on` property (routers, hubs) appear
+in `list` and cannot be switched. Brightness, colour and energy are not
+implemented.
 
 ## Development
 
@@ -122,6 +121,4 @@ tools/probe_thing_api.py          # read-only dump of the cloud's view
 
 ## License
 
-MIT. Nothing from the Tapo app is copied. The certificates in
-`tapo_cli/certs/tplink-ca-chain.pem` are TP-Link's public CA anchors, which
-the cloud does not serve and TLS verification needs.
+Released under the [MIT license](LICENSE).
