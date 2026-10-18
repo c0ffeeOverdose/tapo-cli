@@ -52,13 +52,13 @@ docker run --rm --user "$(id -u):$(id -g)" \
 ```
 
 With rootless podman pass `--userns=keep-id` instead of `--user`, otherwise
-the container cannot read the mode-600 session file.
+the container runs as another uid and cannot read your session file.
 
 ## Usage
 
 ```console
-tapo-cli auth                  # log in once; the token is saved to
-                               # ~/.config/tapo-cli/session.json (mode 600)
+tapo-cli auth                  # log in once; stores a token under
+                               # ~/.config/tapo-cli
 tapo-cli list
 tapo-cli status "Living Room Plug"
 tapo-cli off "Living Room Plug"
@@ -66,10 +66,10 @@ tapo-cli off "Living Room Plug"
 
 Without a session, commands take `--username`/`--password`, then
 `TPLINK_USERNAME`/`TPLINK_PASSWORD`, then
-`~/.config/tapo-cli/credentials.env` (mode 600), and save the resulting
-session. A password given on the command line ends up in the shell history,
-so `auth` or the environment is better for regular use. Accounts with
-two-factor authentication are asked for the mailed code once.
+`~/.config/tapo-cli/credentials.env`, and save the resulting session. A
+password given on the command line ends up in the shell history, so `auth`
+or the environment is better for regular use. Accounts with two-factor
+authentication are asked for the mailed code once.
 
 ### Commands
 
